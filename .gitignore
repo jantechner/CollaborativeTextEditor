@@ -1,3 +1,4 @@
 serwer/server
 serwer/.vscode/
 serwer/insert.c
+.gitignore
