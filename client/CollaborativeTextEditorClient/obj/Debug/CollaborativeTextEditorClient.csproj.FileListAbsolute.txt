@@ -9,3 +9,8 @@ C:\Users\jante\Desktop\CollaborativeTextEditor\client\CollaborativeTextEditorCli
 C:\Users\jante\Desktop\CollaborativeTextEditor\client\CollaborativeTextEditorClient\obj\Debug\CollaborativeTextEditorClient.pdb
 C:\Users\jante\Desktop\CollaborativeTextEditor\client\CollaborativeTextEditorClient\obj\Debug\CollaborativeTextEditorClient.Form1.resources
 C:\Users\jante\Desktop\CollaborativeTextEditor\client\CollaborativeTextEditorClient\obj\Debug\CollaborativeTextEditorClient.Form2.resources
+C:\Users\jante\Desktop\CollaborativeTextEditor\client\CollaborativeTextEditorClient\bin\Debug\CollaborativeTextEditorClient.exe.manifest
+C:\Users\jante\Desktop\CollaborativeTextEditor\client\CollaborativeTextEditorClient\bin\Debug\CollaborativeTextEditorClient.application
+C:\Users\jante\Desktop\CollaborativeTextEditor\client\CollaborativeTextEditorClient\obj\Debug\CollaborativeTextEditorClient.exe.manifest
+C:\Users\jante\Desktop\CollaborativeTextEditor\client\CollaborativeTextEditorClient\obj\Debug\CollaborativeTextEditorClient.application
+C:\Users\jante\Desktop\CollaborativeTextEditor\client\CollaborativeTextEditorClient\obj\Debug\CollaborativeTextEditorClient.Form3.resources

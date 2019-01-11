@@ -26,7 +26,6 @@ namespace CollaborativeTextEditorClient
                 this.conn = this;
                 this.form1 = form1;
                 this.port = Int32.Parse(port);
-                //IPAddress tempAddress = null;
                 if (IPAddress.TryParse(addr, out IPAddress tempAddress))
                 {
                     this.address = tempAddress;
@@ -51,8 +50,6 @@ namespace CollaborativeTextEditorClient
             try
             {
                 Send("r");
-                //socket.Shutdown(SocketShutdown.Both);
-                //socket.Close();
             }
             catch (Exception exc)
             {
@@ -210,6 +207,7 @@ namespace CollaborativeTextEditorClient
         {
             try
             {
+                message += "#<<<!!!EOF!!!>>>";
                 ClientSendMessage obj = new ClientSendMessage { message = message, socket = socket };
                 Console.WriteLine(obj.message);
                 sendBuffer = Encoding.ASCII.GetBytes(message);
@@ -236,10 +234,6 @@ namespace CollaborativeTextEditorClient
                         socket.Close();
                     }
                     catch (Exception) { }
-                }
-                else if (obj.message[0] == 'a')
-                {
-                    //StartReceiving();
                 }
             }
             catch (Exception exc)

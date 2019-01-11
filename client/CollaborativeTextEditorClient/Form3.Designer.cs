@@ -42,10 +42,8 @@
             this.textBox.Size = new System.Drawing.Size(599, 516);
             this.textBox.TabIndex = 0;
             this.textBox.WordWrap = false;
-            this.textBox.TextChanged += new System.EventHandler(this.TextBox_TextChanged);
             this.textBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textBox_KeyDown);
             this.textBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBox_KeyPress);
-            this.textBox.KeyUp += new System.Windows.Forms.KeyEventHandler(this.textBox_KeyUp);
             // 
             // fileContentGroupBox
             // 

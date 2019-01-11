@@ -46,22 +46,15 @@ namespace CollaborativeTextEditorClient
         private void BackButton_Click(object sender, EventArgs e)
         {
             conn.Send("c#" + fileIndex.ToString());
-            //TODO zmiana formularza w wątku 
             this.form.Hide();
             form2.Show();
         }
 
-        private void TextBox_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-
         private void TextBox_KeyPress(object sender, KeyPressEventArgs e)
         {
-
             int line = textBox.GetLineFromCharIndex(textBox.SelectionStart);
             int position = textBox.SelectionStart - textBox.GetFirstCharIndexOfCurrentLine();
+
             if ((int)e.KeyChar == 8)
             {
                 Console.WriteLine("Backspace");
@@ -70,19 +63,8 @@ namespace CollaborativeTextEditorClient
             else if ((int)e.KeyChar != 13)
             {
                 Console.WriteLine("Normal char");
-                conn.Send("i#" + line + "#" + position + "#" + e.KeyChar);
+                conn.Send("i#" + line + "#" + position + "#" + (int)e.KeyChar);
             }
-
-        }
-
-        private void Form3_FormClosed(object sender, FormClosedEventArgs e)
-        {
-            FormManager.CloseAllForms();
-        }
-
-        private void Form3_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            conn.Close();
         }
 
         private void textBox_KeyDown(object sender, KeyEventArgs e)
@@ -97,16 +79,20 @@ namespace CollaborativeTextEditorClient
             }
             else if (e.KeyCode == Keys.Enter)
             {
-                e.SuppressKeyPress = true;
                 Console.WriteLine(line + " " + position + " Enter");
-                conn.Send("i#" + line + "#" + position + "#\n");
+                conn.Send("n#" + line + "#" + position);
 
             }
         }
 
-        private void textBox_KeyUp(object sender, KeyEventArgs e)
+        private void Form3_FormClosed(object sender, FormClosedEventArgs e)
         {
+            FormManager.CloseAllForms();
+        }
 
+        private void Form3_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            conn.Close();
         }
     }
 }
