@@ -1,0 +1,11 @@
+C:\Users\jante\Desktop\CollaborativeTextEditor\client\CollaborativeTextEditorClient\bin\Debug\CollaborativeTextEditorClient.exe.config
+C:\Users\jante\Desktop\CollaborativeTextEditor\client\CollaborativeTextEditorClient\bin\Debug\CollaborativeTextEditorClient.exe
+C:\Users\jante\Desktop\CollaborativeTextEditor\client\CollaborativeTextEditorClient\bin\Debug\CollaborativeTextEditorClient.pdb
+C:\Users\jante\Desktop\CollaborativeTextEditor\client\CollaborativeTextEditorClient\obj\Debug\CollaborativeTextEditorClient.csprojAssemblyReference.cache
+C:\Users\jante\Desktop\CollaborativeTextEditor\client\CollaborativeTextEditorClient\obj\Debug\CollaborativeTextEditorClient.Properties.Resources.resources
+C:\Users\jante\Desktop\CollaborativeTextEditor\client\CollaborativeTextEditorClient\obj\Debug\CollaborativeTextEditorClient.csproj.GenerateResource.cache
+C:\Users\jante\Desktop\CollaborativeTextEditor\client\CollaborativeTextEditorClient\obj\Debug\CollaborativeTextEditorClient.csproj.CoreCompileInputs.cache
+C:\Users\jante\Desktop\CollaborativeTextEditor\client\CollaborativeTextEditorClient\obj\Debug\CollaborativeTextEditorClient.exe
+C:\Users\jante\Desktop\CollaborativeTextEditor\client\CollaborativeTextEditorClient\obj\Debug\CollaborativeTextEditorClient.pdb
+C:\Users\jante\Desktop\CollaborativeTextEditor\client\CollaborativeTextEditorClient\obj\Debug\CollaborativeTextEditorClient.Form1.resources
+C:\Users\jante\Desktop\CollaborativeTextEditor\client\CollaborativeTextEditorClient\obj\Debug\CollaborativeTextEditorClient.Form2.resources
