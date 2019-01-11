@@ -11,71 +11,77 @@
 #include <errno.h>
 
 #define LINES 20
-#define CHARS 10
+#define CHARS 100
 #define READ_BUFFER 1024
 #define WRITE_BUFFER 1024
 #define MAX_CLIENTS_NUMBER 10
+
+void printText(char text[LINES][CHARS]){
+    printf("TEXT AFTER MODIFICATION\n");
+    for (int i = 0; i < LINES; i++) {
+        printf("%s", text[i]);
+    }
+}
+
+void insertNewline(char s[LINES][CHARS], int line, int pos) {
+    char tmp, c = '\n';
+    int i = pos, j = 0;
+
+    char temp[CHARS] = "", in[CHARS] = "";
+
+    if (pos == 0) {
+        strcpy(in, s[line]);
+        strcpy(s[line], "\n");
+    } else if (s[line][pos] == '\n') {
+        strcpy(in, "\n");
+    } else {
+        tmp = s[line][i];
+        s[line][i++] = c;
+        c = tmp;
+        do {
+            in[j++] = c;
+            c = s[line][i];
+            s[line][i++] = '\0';
+        } while (c);
+        in[j] = '\0';
+
+        printf("%s", s[line]);
+        printf("%s", in);
+    }
+
+    j = line;
+    while (j<LINES-1) {
+        j++;
+        strcpy(temp, s[j]);
+        strcpy(s[j], in);
+        strcpy(in, temp);
+    }
+
+    printText(s);
+}
 
 void insertCharacter(char s[LINES][CHARS], char c, int line, int pos) {
     char tmp;
     int i = pos;
 
-    if (c == '\n') {
-        char temp[CHARS], in[CHARS];
-
-        if (pos == 0) {
-            strcpy(in, s[line]);
-            strcpy(s[line], "\n");
-        } else {
-            if (s[line][pos] == '\n') {
-                strcpy(in, "\n");
-            } else {
-                do {
-                    tmp = s[line][i];
-                    s[line][i++] = c;
-                    c = tmp;
-                } while (c);
-                s[line][i] = c;
-
-                char *tok, *newstr1, *newstr2;
-                tok = strtok(s[line], "\n");
-                newstr1 = malloc(strlen(tok) + 2);
-                strcpy(newstr1, tok);
-                strcat(newstr1, "\n");
-
-                tok = strtok(NULL, "\n");
-                newstr2 = malloc(strlen(tok) + 2);
-                strcpy(newstr2, tok);
-                strcat(newstr2, "\n");
-                
-                strcpy(s[line], newstr1);
-                strcpy(in, newstr2);
-
-                free(newstr1);
-                free(newstr2);
-            }
-        }
-        int j = line;
-        while (j<LINES-1) {
-            j++;
-            strcpy(temp, s[j]);
-            strcpy(s[j], in);
-            strcpy(in, temp);
-        }
-    } else {
-        do {
-            tmp = s[line][i];
-            s[line][i++] = c;
-            c = tmp;
-        } while (c);
-        s[line][i] = c;
-    }
+    do {
+        tmp = s[line][i];
+        s[line][i++] = c;
+        c = tmp;
+    } while (c);
+    s[line][i] = c;
 }
 
 void deleteCharacter(char s[LINES][CHARS], int line, int pos) {
 
-    int i, len = (int) strlen(s[line]);
+    int i, len = (int) strlen(s[line]) - 1;
     if (pos > len) pos = len;
+    else if (pos == -1) {
+        if (line != 0) {
+            line--;
+            pos = (int) strlen(s[line]) - 1;
+        } else return;
+    }
     i = pos;
 
     if (s[line][i] == '\n') { //usuwanie znaku nowej linii i przesuwanie pozostałych linii
@@ -86,7 +92,7 @@ void deleteCharacter(char s[LINES][CHARS], int line, int pos) {
             j++; 
             strcpy(s[j], s[j+1]); 
         };
-        strcpy(s[j], "\n");
+        strcpy(s[j], "");
     } else {
         do {
             s[line][i] = s[line][i+1];
@@ -96,12 +102,7 @@ void deleteCharacter(char s[LINES][CHARS], int line, int pos) {
     }
 }
 
-void printText(char text[LINES][CHARS]){
-    printf("TEXT AFTER MODIFICATION\n");
-    for (int i = 0; i < LINES; i++) {
-        printf("%s", text[i]);
-    }
-}
+
 
 struct file {
     int index;
@@ -164,6 +165,7 @@ int prepareFileContent (struct file f, char content[3000], char mode) {
     tsize += 2;
 
     char index[3];
+    memset(index, 0, 3);
     sprintf(index,"%d", f.index);
 
     strcpy(content, strcat(content, index));
@@ -186,11 +188,11 @@ int main(int argc, char ** argv){
     struct sockaddr_in client_addr, server_addr;
     socklen_t client_addr_size = sizeof(client_addr);
 	static struct timeval timeout;
-    fd_set connected, wmask, rmask, newly_connected, open_files_list, update_files_list, open_file;
+    fd_set connected, wmask, rmask, newly_connected, open_files_list, update_files_list, read_file_content, update_file_content, set_update_flag;
 
     struct file files[30];
     int receivedSize, sentSize, line, position, realSentSize, clientFile[100] = {-1};
-    char receivedMsg[100], titles[3000], action, filename[100], *token, character, content[3000];
+    char receivedMsg[100], buffer[READ_BUFFER], titles[3000], action, filename[100], *token, character, content[3000];
 
     //create & bind socket
 	server_addr.sin_family = PF_INET;
@@ -208,28 +210,23 @@ int main(int argc, char ** argv){
     FD_ZERO(&newly_connected);
     FD_ZERO(&open_files_list);
     FD_ZERO(&update_files_list);
-    FD_ZERO(&open_file);
+    FD_ZERO(&read_file_content);
+    FD_ZERO(&update_file_content);
+    FD_ZERO(&set_update_flag);
 
     fdmax = fd_server;
-
-
-    
 	
     //prepare files 
     for (int i = 0; i<30; i++) {
         files[i].index = i;
         strcpy(files[i].name, "");
         for (int j = 0; j<LINES; j++) 
-            strcpy(files[i].content[j], "\n");
+            strcpy(files[i].content[j], "");
     }
     strcpy(files[0].name, "file1");
-    strcpy(files[0].content[0], "janek\n");
-    strcpy(files[0].content[1], "gosia\n");
-    strcpy(files[0].content[2], "adam\n");
+    strcpy(files[0].content[0], "sample text");
 
     for (int i = 0; i < 100; i++) { clientFile[i] = -1; }
-
-
 
 	while(1) {
         
@@ -249,7 +246,7 @@ int main(int argc, char ** argv){
                 update_files_list = connected;
             }
 
-            if (FD_ISSET(fd, &open_file)) { 
+            if (FD_ISSET(fd, &read_file_content)) { 
                 printf("Client %d allowed to open file\n", fd);
                 FD_SET(fd, &wmask);
             }
@@ -258,9 +255,24 @@ int main(int argc, char ** argv){
                 printf("Add client %d to read set\n", fd);
                 FD_SET(fd, &rmask);
             } 
+
+            if (FD_ISSET(fd, &update_file_content) && !FD_ISSET(fd, &set_update_flag)) {
+                int index = clientFile[fd];
+                for (int i=0; i<100; i++) {
+                    if(FD_ISSET(i, &connected) && clientFile[i] == index && !FD_ISSET(i, &set_update_flag)) {
+                        printf("Update file content for client %d \n", i);
+                        FD_SET(i, &update_file_content);
+                        FD_SET(i, &set_update_flag);
+                        FD_SET(i, &wmask);
+                    }
+
+                }
+                FD_SET(fd, &wmask);
+            }
         }
         FD_SET(fd_server, &rmask);
         FD_ZERO(&newly_connected);
+        FD_ZERO(&set_update_flag);
 
 
         // select read-from ready clients 
@@ -289,13 +301,20 @@ int main(int argc, char ** argv){
         	if (FD_ISSET(fd, &rmask)) {
         		fd_active -= 1;
                 memset(receivedMsg, 0, 100);
-        		receivedSize = read(fd, receivedMsg, READ_BUFFER);
-                // printf("%d %s\n", receivedSize, receivedMsg);
+                int rcv = 0;
+        		while((receivedSize = read(fd, buffer, READ_BUFFER)) > 0) {
+                    memcpy(receivedMsg+rcv, buffer, receivedSize);
+                    rcv += receivedSize;
+                    if (strstr(receivedMsg, "#<<<!!!EOF!!!>>>") != NULL) {
+                        break;
+                    }
+                }
+
+                printf("%d %s\n", rcv, receivedMsg);
                 if(strlen(receivedMsg) != 0) {
                     
                     token = strtok(receivedMsg, "#");
                     action = *(token);
-
                     token = strtok(NULL, "#");
                     
                     if (action == 'o' || action == 'a' || action == 'c') {
@@ -309,7 +328,7 @@ int main(int argc, char ** argv){
                         }
                         else if (action == 'o') {
                             openFileForClient(files, (int) sizeof(files)/sizeof(files[0]), filename, fd, clientFile);
-                            FD_SET(fd, &open_file);
+                            FD_SET(fd, &read_file_content);
                         }
                         else if (action == 'c') {
                             clientFile[fd] = -1;
@@ -317,19 +336,35 @@ int main(int argc, char ** argv){
                         }
 
 
-                    } else if (action == 'd' || action == 'i') {
+                    } else if (action == 'd' || action == 'i' || action == 'n') {
                         line = (int) strtol(token, (char **) NULL, 10);
                         token = strtok(NULL, "#");
                         position = (int) strtol(token, (char **) NULL, 10);
-                        token = strtok(NULL, "#");
-                        character = *(token);
-                        printf("Command from %d - %c %d %d %c\n", fd, action, line, position, character);
+                        printf("Command from %d - %c %d %d", fd, action, line, position);
+
+                        if (action == 'i') { 
+                            token = strtok(NULL, "#");
+                            character = (int) strtol(token, (char **)NULL, 10);
+                            printf(" (%d)\n", (int) character);
+                            insertCharacter(files[clientFile[fd]].content, character , line, position);
+                        }
+                        else if (action == 'd') {
+                            printf("\n");
+                            deleteCharacter(files[clientFile[fd]].content, line, position);
+                        }
+                        else if (action == 'n') {
+                            printf("\n");
+                            insertNewline(files[clientFile[fd]].content, line, position);
+                        }
+                        FD_SET(fd, &update_file_content);
+
                     } else if (action == 'r') {
                         printf("Command from %d - %c\n", fd, action);
                         FD_CLR(fd, &connected);
                         FD_CLR(fd, &open_files_list);
                         FD_CLR(fd, &update_files_list);
-                        FD_CLR(fd, &open_file);
+                        FD_CLR(fd, &read_file_content);
+                        FD_CLR(fd, &update_file_content);
                         FD_CLR(fd, &rmask);
                         FD_CLR(fd, &wmask);
                         clientFile[fd] = -1;
@@ -344,12 +379,6 @@ int main(int argc, char ** argv){
         	} 
             else if (FD_ISSET(fd, &wmask)) {
                 fd_active -= 1;
-                // printf("%d ready to write to\n", (int) fd);
-
-                //     char result[] = "mYZPHYejYxcKYk3U7ctACnU7yfwQbY7sFYNWVWyqHvFmT40tNyI3oP3MMejRWD0Djf4V2Wqccz06traUmn74TltzMb3ITPTLDJavMmiwFCVrP3ZM40zdOKKQgBDoNkc2V9N6WSvX0H4wFKH4e6jmoRNJZ08wjsdzXcPGEKWztfCrLiZvfp63PX0BkuwUNvrkKqZqkC2oDpjhFRCSKA1WHPM03xDYkrWqxMl9Cp2hiqNoxDWZDkTm5trz9WbhXOBBpGMU9DN5TJGH2PUfchEoPI609mmuNRhIEnvxQoyYEQzhWdQzCyhGaMu2aAEoPvGwgtxxjAhiFuxxs0n5B9vEgRfCl3MHcQbn52stvPMcRQKieJ0u0UU88FTyCTOUyVDlZFRzsL9BkVFhSFCHmjh4Hw8MLelyNE39o0rTOkRCm6NKcVkShsgAiRcYhWRviEWKX2EeG0XFpwGgoTxTGhHGDJ7LvHKsIFswDZh8aNH13BFHXI10lYGu1I7SbvC7wNfbKYffC5ui0sNrwZCNmC0Jl07viANzCeedBAoEB44o0Rdm0TXnYh2yRzjgQOOUHxaTsGh6LPuRNLCtXnsrXNNs3oRSM5kDxlsDfsZwv2MrSRBJfr5ptoFK9TdwIAUzLkN49QFyAdW3agxBBGnntVnkAmfrksDm3ffKbvl008H07WS7jGmhvtBxkGgkAR7SKBHKENSRMvSQ53MZ6N79cYFfH0ZfAMZb7UxuiUHZ8BMFiqpnnqIKQkhskhPz6nzDabZV735Qw2iySCHc2tjoW1VAwI5obdatWF1gB1BbjzDVc7ykgIypMi4DceL3TH3IJPSngNUEDpXH7MDfhZnyoAvJvBsJDogXq3EVfWFcEsRuW69BjoXKN9VP82jmMj2hS4n8L4RO018qNhtr8rcbxdagA3X4kcvTMh2ln8jtPDjubENxcoHOq4bWA2weqW2sByzyXqKDuOuPvsIWk4LSFQEaCe1LD3r8XN1jxVYUSMX9rSWbgfzFPUTeVEnl8IzRhff2lDHz9wlwaWNtiOxtwr4mA4X2OL6skXv6wNK4yAvT2bk99N9vo1gxaxmRJEEPF7RlOZgmr2e87GOwAJxs4Kf0Wrw21XvmAgYwQ2wahv3LQHtwViHUbpHzW97XBSCsQvnaXdPF6OS5z4X2uWawTk4ioR5dSANo1VfOikcJliyGvcKCWUtKTFc1zIHlnMCOL1QBZK0pELSehHNqVadzH8zz2AxfetjEiFoPDRVKjBl9EqSqAOSJxOaUOm85xXOn7oYJkEaq6rxSftSZHGIqY8yIA9lnuHZp7eU0pupd2XC4AL61A2GZp67iH94UJWLiE8ExQfWCtqxkxuuTxu3ysr4j9IGDHuwvJpyAMrwflk7ZoFQADQ4PJguQ0EPzYJomb6SzqA6PMPMh6pRv2UZcMU9saoXwWeyIqDlwOjcQg5l63Lrahp5c0ZJTFDWuDywN65R0KqWmJ4wFd6JybfhxYeVLWWDdf5fw";
-                //     int s = (int) strlen(result);
-                //     addEOFsign(result, &s);
-                //     printf("%s   %d", result, s);
 
                 if(FD_ISSET(fd, &open_files_list)) {
                     sentSize = prepareFilenames(files, (int) sizeof(files)/sizeof(files[0]), titles, 'f');
@@ -367,12 +396,20 @@ int main(int argc, char ** argv){
                     FD_CLR(fd, &update_files_list);
                 }
 
-                if(FD_ISSET(fd, &open_file)) {
+                if(FD_ISSET(fd, &read_file_content)) {
                     sentSize = prepareFileContent(files[clientFile[fd]], content, 'o');
                     addEOFsign(content, &sentSize);
                     realSentSize = write(fd, content, sentSize);
-                    printf("%d bytes of data sent to client %d - open_file\n", realSentSize, fd);
-                    FD_CLR(fd, &open_file);
+                    printf("%d bytes of data sent to client %d - read_file_content\n", realSentSize, fd);
+                    FD_CLR(fd, &read_file_content);
+                }
+
+                if(FD_ISSET(fd, &update_file_content)) {
+                    sentSize = prepareFileContent(files[clientFile[fd]], content, 'u');
+                    addEOFsign(content, &sentSize);
+                    realSentSize = write(fd, content, sentSize);
+                    printf("%d bytes of data sent to client %d - update_file_content\n", realSentSize, fd);
+                    FD_CLR(fd, &update_file_content);
                 }
 
 				FD_CLR(fd, &wmask);
