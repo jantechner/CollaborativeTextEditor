@@ -216,6 +216,7 @@ namespace CollaborativeTextEditorClient
             catch (Exception)
             {
                 //MessageBox.Show("9. Exception:\t\n" + exc.Message.ToString());
+
             }
         }
 

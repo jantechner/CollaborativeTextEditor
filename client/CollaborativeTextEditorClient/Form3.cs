@@ -19,14 +19,9 @@ namespace CollaborativeTextEditorClient
             if (this.textBox.InvokeRequired) this.form.Invoke(new UpdateFileContentCallback(UpdateFileContent), fileContent);
             else
             {
-                byte[] bytes = Encoding.ASCII.GetBytes(fileContent);
-                foreach (byte b in bytes)
-                {
-                    Console.WriteLine(b);
-                }
-
+                int cursorPosition = textBox.SelectionStart;
                 this.textBox.Text = fileContent.Replace("\n", Environment.NewLine);
-
+                textBox.SelectionStart = cursorPosition;
             }
         }
 
