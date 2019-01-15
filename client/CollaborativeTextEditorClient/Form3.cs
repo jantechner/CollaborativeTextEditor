@@ -12,6 +12,16 @@ namespace CollaborativeTextEditorClient
         public Connection conn = null;
         private int fileIndex;
 
+        private int DiffersAtIndex(string s1, string s2)
+        {
+            int index = 0;
+            int min = Math.Min(s1.Length, s2.Length);
+            while (index < min && s1[index] == s2[index])
+                index++;
+
+            return (index == min && s1.Length == s2.Length) ? -1 : index;
+        }
+
         public delegate void UpdateFileContentCallback(String fileContent);
         public UpdateFileContentCallback UpdateFileContentDelegate;
         public void UpdateFileContent(String fileContent)
@@ -19,9 +29,21 @@ namespace CollaborativeTextEditorClient
             if (this.textBox.InvokeRequired) this.form.Invoke(new UpdateFileContentCallback(UpdateFileContent), fileContent);
             else
             {
+                int oldTextLenght = this.textBox.Text.Length, newTextLength = fileContent.Length;
+
                 int cursorPosition = textBox.SelectionStart;
-                this.textBox.Text = fileContent.Replace("\n", Environment.NewLine);
-                textBox.SelectionStart = cursorPosition;
+
+                fileContent = fileContent.Replace("\n", Environment.NewLine);
+                int changeIndex = DiffersAtIndex(this.textBox.Text.ToString(), fileContent);
+
+                this.textBox.Text = fileContent;
+
+                if (changeIndex < cursorPosition)
+                {
+                    if (oldTextLenght < newTextLength) textBox.SelectionStart = cursorPosition - 1;
+                    else textBox.SelectionStart = cursorPosition + 1;
+                }
+                    
             }
         }
 
